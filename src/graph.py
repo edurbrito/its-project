@@ -71,7 +71,7 @@ class Graph():
         if len(self.nodes) != 0:
             
             for k in parser.edges:
-                sn, en, dst = k, parser.edges[k][0], parser.edges[k][1]
+                sn, en, dst = k[0], k[1], parser.edges[k]
                 edge = Edge(self.nodes[sn], self.nodes[en], dst)
                 _all[edge] = edge
 

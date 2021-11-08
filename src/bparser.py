@@ -33,12 +33,10 @@ class Parser():
             _all["dnode"])
 
         self.nodes = {k:_all[k] for k in ["entrance", "exit", "dnode", "pspot", "pspot_disabled"]}
-        self.edges = nns
-
-        print(self.__detect_edges(
+        self.edges = nns | self.__detect_edges(
                 _all["dnode"],
                 _all["edge"],
-                _all["arrow"]))
+                _all["arrow"])
 
         # return the amount of nodes and edges generated
         return {k:len(self.nodes[k]) for k in self.nodes}, len(self.edges)
@@ -103,7 +101,7 @@ class Parser():
                     nn_distance = dst
             
             if nn is not None:
-                nns[target] = nn, nn_distance
+                nns[(target, nn)] = nn_distance
         return nns
 
     def __is_neighbour(self, x1, y1, x2, y2) -> bool:
@@ -127,18 +125,34 @@ class Parser():
 
     def __detect_edges(self, dnodes, edges, arrows) -> dict:
         data = {k:k for k in edges}
-        nedges = {n:set() for n in dnodes}
+        lines = {}
 
         for e1 in edges:
             for e2 in edges:
                 if self.__is_neighbour(*e1, *e2):
                     self.__union(data, e1, e2)
         
+        for e in edges:
+            k = data[e]
+            if k in lines:
+                lines[k][0].add(e)
+            else:
+                lines[k] = (set(),set())
+                lines[k][0].add(e)
+
         for n in dnodes:
             for e in edges:
-                if self.__is_neighbour(*data[e], *n):
-                    nedges[n].add(data[e])
+                if self.__is_neighbour(*e, *n):
+                    lines[data[e]][1].add(n)
 
-        print(data)
-        print()
-        print(nedges)
+        result = {}
+
+        for l in lines:
+            nodes = list(lines[l][1])
+            if len(nodes) == 2:
+                for n1 in nodes:
+                    for n2 in nodes:
+                        if n1 != n2:
+                            result[(n1,n2)] = self.__euclidean_distance(*n1,*n2)
+
+        return result
