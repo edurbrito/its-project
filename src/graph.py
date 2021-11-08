@@ -3,6 +3,7 @@ from node import *
 from edge import Edge
 import networkx as nx
 import matplotlib.pyplot as plt
+from random import randint
 
 class Graph():
     def __init__(self, nodes: dict, edges: dict) -> None:
@@ -20,7 +21,11 @@ class Graph():
             raise Exception("Number of nodes/edges not correct")
 
     def draw(self) -> None:
-        G = nx.Graph()
+        """
+        Draws the directed graph using networkx library
+        """
+
+        G = nx.DiGraph()
 
         for k in self.nodes:
             G.add_node(self.nodes[k], pos=k)
@@ -31,21 +36,28 @@ class Graph():
         pos = nx.get_node_attributes(G,'pos')
 
         colors = []
+        sizes = []
 
         for n in G.nodes:
             if isinstance(n, ParkingSpot):
-                colors.append("red")
+                n.free = bool(randint(0,1)) # TODO
+                colors.append(n.get_colour())
+                sizes.append(100)
             elif isinstance(n, ParkingSpotDisabled):
-                colors.append("yellow")
+                n.free = bool(randint(0,1)) # TODO
+                colors.append(n.get_colour())
+                sizes.append(100)
             elif isinstance(n, Entrance):
                 colors.append("orange")
+                sizes.append(250)
             elif isinstance(n, Exit):
-                colors.append("green")
+                colors.append("lightgreen")
+                sizes.append(250)
             else:
                 colors.append("blue")
+                sizes.append(100)
             
-        
-        nx.draw(G, pos, node_color=colors)
+        nx.draw(G, pos, node_color=colors, node_size=sizes)
         plt.show()
 
 
@@ -53,7 +65,10 @@ class Graph():
        
 
     def __get_nodes(self, parser) -> dict:
-        
+        """
+        Creates all the nodes' objects from the info returned by the parser
+        """
+
         _all = {}
         factory = FactoryNode()
 
@@ -65,6 +80,9 @@ class Graph():
         return _all
 
     def __get_edges(self, parser) -> dict:
+        """
+        Creates all the edges' objects from the info returned by the parser
+        """
 
         _all = {}
 
