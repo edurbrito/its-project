@@ -1,3 +1,4 @@
+from numpy.core.numeric import array_equal
 from __env__ import *
 import numpy as np
 import cv2
@@ -15,22 +16,29 @@ class Parser():
         """
 
         img = cv2.cvtColor(cv2.imread(self.img), cv2.COLOR_BGR2RGB)
+
         parsed, inv_parsed = self.__parse_colours()
 
         _all = { k:[] for k in parsed}
-        
+        ln = len(img)
+
         for y,l in enumerate(img):
             for x,c in enumerate(l):
                 type = inv_parsed.get(str(c), False)
                 if type: 
-                    _all[type].append((x,len(img) - y))
+                    _all[type].append((x,ln - y))
 
         nns = self.__nearest_neighbours(
-            _all["pspot"] + _all["entrance"] + _all["exit"] + _all["pspot_disabled"], 
+            _all["pspot"] + _all["pspot_disabled"], 
             _all["dnode"])
 
         self.nodes = {k:_all[k] for k in ["entrance", "exit", "dnode", "pspot", "pspot_disabled"]}
         self.edges = nns
+
+        print(self.__detect_edges(
+                _all["dnode"],
+                _all["edge"],
+                _all["arrow"]))
 
         # return the amount of nodes and edges generated
         return {k:len(self.nodes[k]) for k in self.nodes}, len(self.edges)
@@ -97,3 +105,40 @@ class Parser():
             if nn is not None:
                 nns[target] = nn, nn_distance
         return nns
+
+    def __is_neighbour(self, x1, y1, x2, y2) -> bool:
+        for i,j in [(-1,0), (0,-1), (0,1), (1,0)]:
+            if x1 + i == x2 and y1 + j == y2:
+                return True
+        return False
+
+    def __find(self, data, i):
+        if i != data[i]:
+            data[i] = self.__find(data, data[i])
+        return data[i]
+
+    def __union(self, data, i, j):
+        pi, pj = self.__find(data, i), self.__find(data, j)
+        if pi != pj:
+            if self.__euclidean_distance(*pi, 0,0) < self.__euclidean_distance(*pj, 0,0):
+                data[pj] = pi
+            else:
+                data[pi] = pj
+
+    def __detect_edges(self, dnodes, edges, arrows) -> dict:
+        data = {k:k for k in edges}
+        nedges = {n:set() for n in dnodes}
+
+        for e1 in edges:
+            for e2 in edges:
+                if self.__is_neighbour(*e1, *e2):
+                    self.__union(data, e1, e2)
+        
+        for n in dnodes:
+            for e in edges:
+                if self.__is_neighbour(*data[e], *n):
+                    nedges[n].add(data[e])
+
+        print(data)
+        print()
+        print(nedges)
