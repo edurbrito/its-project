@@ -15,3 +15,11 @@ ALL = {
         "edge": EDGE,
         "arrow": ARROW 
         }
+
+
+""" BLUEPRINTS """
+
+
+BP_SMALL = "blueprints/bp-01.png"
+BP_MEDIUM = "blueprints/bp-02.png"
+BP_LARGE = ""

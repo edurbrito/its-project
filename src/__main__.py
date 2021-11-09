@@ -1,8 +1,9 @@
 from bparser import *
 from graph import Graph
+from __env__ import BP_SMALL, BP_MEDIUM, BP_LARGE
 
 if __name__ == "__main__":
-    p = Parser("/home/edurbrito/Projects/UTARTU-4Y1S/intelligent-transport-systems/project/its-project/blueprints/bp-02-pixel-sm.png")
+    p = Parser(BP_SMALL)
 
     g = Graph(p)
 

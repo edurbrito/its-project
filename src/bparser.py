@@ -1,11 +1,12 @@
 from __env__ import *
 import numpy as np
 import cv2
+import os
 
 class Parser():
 
     def __init__(self, img: str) -> None:
-        self.img = img
+        self.img = str(os.path.abspath(img))
         self.nodes = None
         self.edges = None
 

@@ -58,6 +58,8 @@ class Graph():
                 sizes.append(100)
             
         nx.draw(G, pos, node_color=colors, node_size=sizes)
+        mng = plt.get_current_fig_manager()
+        mng.full_screen_toggle()
         plt.show()
 
 
