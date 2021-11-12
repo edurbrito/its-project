@@ -22,4 +22,4 @@ ALL = {
 
 BP_SMALL = "blueprints/bp-01.png"
 BP_MEDIUM = "blueprints/bp-02.png"
-BP_LARGE = ""
+BP_LARGE = "blueprints/bp-03.png"

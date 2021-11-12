@@ -55,7 +55,7 @@ class Graph():
                 sizes.append(250)
             else:
                 colors.append("blue")
-                sizes.append(100)
+                sizes.append(50)
             
         nx.draw(G, pos, node_color=colors, node_size=sizes)
         mng = plt.get_current_fig_manager()
