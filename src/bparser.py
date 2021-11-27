@@ -116,6 +116,7 @@ class Parser():
                 # if a nearest neighbour was found
                 # a directed edge is created between them
                 nns[(nn, target)] = nn_distance
+                nns[(target, nn)] = nn_distance
 
         return nns
 

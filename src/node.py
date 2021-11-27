@@ -26,9 +26,10 @@ class ParkingSpot(Node):
     def get_colour(self):
         return "green" if self.free else "red"
 
-class ParkingSpotDisabled(ParkingSpot):
+class ParkingSpotDisabled(Node):
     def __init__(self, x, y) -> None:
         super().__init__(x, y)
+        self.free = True
 
     def get_colour(self):
         return "#EACA00" if self.free else "red"

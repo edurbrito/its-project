@@ -6,14 +6,21 @@ Parking Lot Congestion Avoidance System
 
 ## Instructions
 
-Create a python virtual environment:
-`python -m venv env`
+For Windows:
 
-Select the python kernel:
-`source env/bin/activate`
+Open a terminal:
+1. Create the Virtual Environment: `py -m venv env`
+2. Activate the Virtual Environment: `.\env\Scripts\activate`
+3. Install the requirements: `pip install -r requirements.txt`
+4. Choose this environment kernel in `./env/bin/python` as the Jupyter Notebook kernel
 
-Install all the dependencies:
-`python install -r requirements.txt`
+For Linux:
+
+Open a terminal:
+1. Create the Virtual Environment: `python -m venv env`
+2. Activate the Virtual Environment: `source env/bin/activate`
+3. Install the requirements: `pip install -r requirements.txt`
+4. Choose this environment kernel `./env/bin/python` as the Jupyter Notebook kernel
 
 ------------------------
 
