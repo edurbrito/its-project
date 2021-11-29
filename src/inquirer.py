@@ -13,6 +13,7 @@ from threading import Thread, Event
 class Inquirer():
     def __init__(self) -> None:
         self.blueprints = [BP_SMALL, BP_MEDIUM, BP_LARGE]
+        self.blueprint = ""
 
         self.lists = {
             "blueprint": ["Small", "Medium", "Big"],
@@ -123,11 +124,18 @@ class Inquirer():
         exit_event = Event()
         thread = Thread(target=Inquirer.__show_progress_bar, args=(exit_event,))
         thread.start()
-        p = Parser(blueprint)
-        g = Graph(p)
-        g.generate_random_state(randint(0,90) / 100.0, randint(0,90) / 100.0)
+
+        if val != self.blueprint:
+            p = Parser(blueprint)
+            g = Graph(p)
+            g.generate_random_state(randint(0,90) / 100.0, randint(0,90) / 100.0)
+        else:
+            g = self.graph
+
         exit_event.set()
         thread.join()
+
+        self.blueprint = val
         return g
 
 

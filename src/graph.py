@@ -93,19 +93,16 @@ class Graph():
         Returns current parking lot stats based on the occupancy
         """
 
-        current_stats = {"pspot": 0, "pspot_disabled": 0}
+        current_stats = {"pspot": [0, self.info["pspot"]], "pspot_disabled": [0, self.info["pspot_disabled"]]}
 
         for n in self.nodes:
             node = self.nodes[n]
             if isinstance(node, ParkingSpot):
-                if not node.free:
-                    current_stats["pspot"] += 1
+                if node.free:
+                    current_stats["pspot"][0] += 1
             elif isinstance(node, ParkingSpotDisabled):
-                if not node.free:
-                    current_stats["pspot_disabled"] += 1
-
-        for k in current_stats:
-            current_stats[k] = int(current_stats[k] / self.info[k] * 100)
+                if node.free:
+                    current_stats["pspot_disabled"][0] += 1
 
         return current_stats
 
@@ -182,12 +179,13 @@ class Graph():
         pspot_disabled_legend = ""
         if stats:
             st = self.get_stats()
-            pspot_legend += f' | {st["pspot"]}% occupied'
-            pspot_disabled_legend += f' | {st["pspot_disabled"]}% occupied'
+            pspot_legend += f' | {st["pspot"][0]}/{st["pspot"][1]} Free'
+            pspot_disabled_legend += f' | {st["pspot_disabled"][0]}/{st["pspot_disabled"][1]} Free'
 
         legend_elements = [
-            Line2D([0], [0], marker='o', color='w', label=f'Parking Spot' + pspot_legend, markerfacecolor=PSPOT, markersize=10),
-            Line2D([0], [0], marker='o', color='w', label='Parking Spot Disabled People' + pspot_disabled_legend, markerfacecolor=PSPOT_DISABLED, markersize=10),
+            Line2D([0], [0], marker='o', color='w', label='Free Spot' + pspot_legend, markerfacecolor="g", markersize=10),
+            Line2D([0], [0], marker='o', color='w', label='Free Spot For Disabled People' + pspot_disabled_legend, markerfacecolor=PSPOT_DISABLED, markersize=10),
+            Line2D([0], [0], marker='o', color='w', label='Occupied Spot', markerfacecolor=PSPOT, markersize=10),
             Line2D([0], [0], marker='o', color='w', label='Entrance', markerfacecolor=ENTRANCE, markersize=10),
             Line2D([0], [0], marker='o', color='w', label='Exit', markerfacecolor=EXIT, markersize=10)
         ]
