@@ -1,10 +1,13 @@
 from bparser import Parser
 from node import *
 from edge import Edge
+from __env__ import *
 import networkx as nx
 import matplotlib.pyplot as plt
+from matplotlib.lines import Line2D
 from random import randint
 import math
+
 
 class Graph():
     def __init__(self, nodes: dict, edges: dict) -> None:
@@ -35,8 +38,14 @@ class Graph():
         if sum(presult[0].values()) != len(self.nodes) or presult[1] != len(self.edges):
             raise Exception("Number of nodes/edges not correct")
 
-    def generate_random_state(self, prob_pspot: float, prob_pspotdisabled: float) -> None:
-        
+
+    def generate_random_state(self, prob_pspot: float, prob_pspot_disabled: float) -> None:
+        """
+        Generates a random state for the parking lot occupancy, based on some probability
+        for the occupied Parking Spots and Parking Spots for Disabled People
+        - This is for simulation purposes
+        """
+
         lpspot = self.info["pspot"]
         lpspot_disabled = self.info["pspot_disabled"]
 
@@ -45,27 +54,64 @@ class Graph():
             if isinstance(node, ParkingSpot):
                 node.free = self.__get_prob(prob_pspot, randint(1,lpspot), lpspot)
             elif isinstance(node, ParkingSpotDisabled):
-                node.free = self.__get_prob(prob_pspotdisabled, randint(1,lpspot_disabled), lpspot_disabled)
+                node.free = self.__get_prob(prob_pspot_disabled, randint(1,lpspot_disabled), lpspot_disabled)
+
+
+    def get_random_occupied_spot(self, is_disabled : bool = False) -> Node:
+        """
+        Returns a random occupied spot if available
+        - This is for simulation purposes
+        """
+
+        occupied = []
+        disabled_count = 0
+        for k in self.nodes:
+            if isinstance(self.nodes[k], ParkingSpot) or isinstance(self.nodes[k], ParkingSpotDisabled):
+                if not self.nodes[k].free:
+                    occupied.append(self.nodes[k])
+                    if isinstance(self.nodes[k], ParkingSpotDisabled): disabled_count += 1
+        
+        if len(occupied) == 0:
+            return None
+
+        node = occupied[randint(0, len(occupied)-1)]
+
+        def parking_spot_type(node, is_disabled=False):
+            if not is_disabled or disabled_count == 0:
+                return isinstance(node, ParkingSpot)
+            else:
+                return isinstance(node, ParkingSpotDisabled)
+        
+        while not (parking_spot_type(node, is_disabled) and not node.free):
+            node = occupied[randint(0, len(occupied)-1)]
+
+        return node
+
 
     def get_stats(self) -> dict:
+        """
+        Returns current parking lot stats based on the occupancy
+        """
 
-        current_stats = {"pspot": 0, "pspot_disabled": 0}
+        current_stats = {"pspot": [0, self.info["pspot"]], "pspot_disabled": [0, self.info["pspot_disabled"]]}
 
         for n in self.nodes:
             node = self.nodes[n]
             if isinstance(node, ParkingSpot):
-                if not node.free:
-                    current_stats["pspot"] += 1
+                if node.free:
+                    current_stats["pspot"][0] += 1
             elif isinstance(node, ParkingSpotDisabled):
-                if not node.free:
-                    current_stats["pspot_disabled"] += 1
-
-        for k in current_stats:
-            current_stats[k] = current_stats[k] / self.info[k]
+                if node.free:
+                    current_stats["pspot_disabled"][0] += 1
 
         return current_stats
 
+
     def get_path(self, start_node: Node, end_node: Node, visualize: bool) -> tuple:
+        """
+        Returns the path between two nodes
+        """
+
         dst = self.all_pairs_distance[start_node][end_node]
         path = self.all_pairs_path[start_node][end_node]
 
@@ -74,7 +120,12 @@ class Graph():
 
         return dst, path
 
+
     def get_nearest_free_spot(self, start_node: Node, is_disabled: bool, visualize: bool) -> tuple:
+        """
+        Finds the nearest free spot and the path to reach there
+        """
+
         all_distances = self.all_pairs_distance[start_node]
         min_dist, nearest_node = math.inf, None
         path = []
@@ -97,7 +148,8 @@ class Graph():
 
         return (nearest_node, path)
 
-    def draw(self, path=None) -> None:
+
+    def draw(self, path : list = None, stats : bool = False) -> None:
         """
         Draws the directed graph using networkx library
         """
@@ -123,26 +175,53 @@ class Graph():
                 colors[n] = "blue"
                 sizes.append(50)
         
+        pspot_legend = ""
+        pspot_disabled_legend = ""
+        if stats:
+            st = self.get_stats()
+            pspot_legend += f' | {st["pspot"][0]}/{st["pspot"][1]} Free'
+            pspot_disabled_legend += f' | {st["pspot_disabled"][0]}/{st["pspot_disabled"][1]} Free'
+
+        legend_elements = [
+            Line2D([0], [0], marker='o', color='w', label='Free Spot' + pspot_legend, markerfacecolor="g", markersize=10),
+            Line2D([0], [0], marker='o', color='w', label='Free Spot For Disabled People' + pspot_disabled_legend, markerfacecolor=PSPOT_DISABLED, markersize=10),
+            Line2D([0], [0], marker='o', color='w', label='Occupied Spot', markerfacecolor=PSPOT, markersize=10),
+            Line2D([0], [0], marker='o', color='w', label='Entrance', markerfacecolor=ENTRANCE, markersize=10),
+            Line2D([0], [0], marker='o', color='w', label='Exit', markerfacecolor=EXIT, markersize=10)
+        ]
+
         if path is not None:
             
             for i, n in enumerate(path):
-                if i == 0: colors[path[i]] = "#FF34B3"
-                elif i == len(path) - 1: colors[path[i]] = "#AAFF00"
-                else: colors[path[i]] = "#00FFFF"
+                if i == 0: colors[path[i]] = PSTART
+                elif i == len(path) - 1: colors[path[i]] = PEND
+                else: colors[path[i]] = PATH
 
+            legend_elements.extend([
+                Line2D([0], [0], marker='o', color='w', label='Path Start', markerfacecolor=PSTART, markersize=10),
+                Line2D([0], [0], marker='o', color='w', label='Path End', markerfacecolor=PEND, markersize=10),
+                Line2D([0], [0], marker='o', color='w', label='Path Nodes', markerfacecolor=PATH, markersize=10)
+            ])
 
         pos = nx.get_node_attributes(self.G,'pos')
-            
-        nx.draw(self.G, pos, node_color=colors.values(), node_size=sizes)
+        ax = plt.axes()
+        nx.draw(self.G, pos, node_color=colors.values(), node_size=sizes, ax=ax)
         mng = plt.get_current_fig_manager()
         mng.full_screen_toggle()
+        ax.legend(handles=legend_elements)
         plt.show()
 
 
     """ Private Methods """
        
+
     def __get_prob(self, prob: float, random_int: int, length: int) -> bool:
+        """
+        Returns True/False based on some probability for random_int/lenght
+        """
+
         return (random_int / length) > prob
+
 
     def __get_nodes(self, parser) -> dict:
         """
@@ -166,6 +245,7 @@ class Graph():
                     self.exit = _all[node]
 
         return _all
+
 
     def __get_edges(self, parser) -> dict:
         """
